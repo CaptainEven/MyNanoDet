@@ -1,0 +1,110 @@
+# Config File example
+save_dir: /mnt/diskb/even/workspace/nanodet_mcmot
+
+model:
+  arch:
+    name: GFL
+    backbone:
+      name: ShuffleNetV2
+      model_size: 1.0x
+      out_stages: [2, 3, 4]
+      activation: LeakyReLU
+    fpn:
+      name: PAN
+      in_channels: [116, 232, 464]
+      out_channels: 96
+      start_level: 0
+      num_outs: 3
+    head:
+      name: NanoDetHead
+      num_classes: 5
+      input_channel: 96
+      feat_channels: 96
+      stacked_convs: 2
+      share_cls_reg: True
+      octave_base_scale: 5
+      scales_per_octave: 1
+      strides: [8, 16, 32]
+      reg_max: 7
+      norm_cfg:
+        type: BN
+      loss:
+        loss_qfl:
+          name: QualityFocalLoss
+          use_sigmoid: True
+          beta: 2.0
+          loss_weight: 1.0
+        loss_dfl:
+          name: DistributionFocalLoss
+          loss_weight: 0.25
+        loss_bbox:
+          name: GIoULoss
+          loss_weight: 2.0
+
+data:
+  train:
+    name: mcmot_det
+    img_path: /mnt/diskb/even/dataset/MCMOT_DET/JPEGImages           # jpg root
+    ann_path: /mnt/diskb/even/dataset/MCMOT_DET/Annotations          # xml root
+    input_size: [768, 448]  # [w, h]
+    keep_ratio: True
+    pipeline:
+      perspective: 0.0
+      scale: [0.6, 1.4]
+      stretch: [[1, 1], [1, 1]]
+      rotation: 0
+      shear: 0
+      translate: 0
+      flip: 0.5
+      brightness: 0.2
+      contrast: [0.8, 1.2]
+      saturation: [0.8, 1.2]
+      normalize: [[103.53, 116.28, 123.675], [57.375, 57.12, 58.395]]
+  val:
+    name: mcmot_det
+    img_path: /mnt/diskb/even/dataset/MCMOT_DET/test
+    ann_path: /mnt/diskb/even/dataset/MCMOT_DET/Annotations
+    input_size: [768, 448]  # [w, h]
+    keep_ratio: True
+    pipeline:
+      normalize: [[103.53, 116.28, 123.675], [57.375, 57.12, 58.395]]
+
+device:
+  gpu_ids: [2]
+  workers_per_gpu: 8
+  batchsize_per_gpu: 40
+
+schedule:
+  resume:
+    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch29_iter2000.pth
+  optimizer:
+    name: SGD
+    lr: 0.00750
+    momentum: 0.9
+    weight_decay: 0.0001
+  warmup:
+    name: linear
+    steps: 300
+    ratio: 0.1
+  total_epochs: 100
+  lr_schedule:
+    name: MultiStepLR
+    milestones: [40, 55, 60, 65, 75]
+    gamma: 0.1
+  val_intervals: 10
+  save_interval: 500  # iteration interval of saving checkpoint
+
+evaluator:
+  name: CocoDetectionEvaluator
+  save_key: mAP
+
+log:
+  interval: 10
+
+class_names: ['car', 'bicycle', 'person', 'cyclist', 'tricycle']
+
+#target_types: ['car', 'car_front', 'car_rear',
+#               'bicycle', 'person', 'cyclist',
+#               'tricycle', 'motorcycle', 'non_interest_zone',
+#               'non_interest_zones']
+
