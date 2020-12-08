@@ -182,6 +182,7 @@ class Trainer:
                 if self.cfg.schedule.val_intervals > 0 and epoch % self.cfg.schedule.val_intervals == 0:
                     with torch.no_grad():
                         results, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
+
                     for k, v in val_loss_dict.items():
                         self.logger.scalar_summary('Epoch_loss/' + k, 'val', v, epoch)
 

@@ -106,9 +106,10 @@ class MyDataset(BaseDataset):
                 if label.size != 0:
                     # --- filling image info list
                     img_info = dict()
-                    img_info['height'] = w  # image width
-                    img_info['width'] = h  # image height
+                    img_info['height'] = w   # image width
+                    img_info['width'] = h    # image height
                     img_info['file_name'] = os.path.split(img_path)[-1]
+                    img_info['id'] = self.N  # image id
                     self.img_info_list.append(img_info)
 
                     # --- filling label
@@ -124,7 +125,10 @@ class MyDataset(BaseDataset):
             print('Total {:d} non-empty label samples.'.format(self.N))
 
     def __len__(self):
-        return self.N
+        if self.cache_labels:
+            return self.N
+        else:
+            return len(self.img_list)
 
     def label_str_format(self, label_objs_str):
         """
@@ -174,6 +178,7 @@ class MyDataset(BaseDataset):
             img_info['height'] = H
             img_info['width'] = W
             img_info['file_name'] = os.path.split(img_path)[-1]
+            img_info['id'] = idx
 
             # ----- read label from xml label file
             # init label to zeros

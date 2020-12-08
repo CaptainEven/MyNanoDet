@@ -71,7 +71,7 @@ data:
 
 device:
   gpu_ids: [2]
-  workers_per_gpu: 8
+  workers_per_gpu: 4
   batchsize_per_gpu: 40
 
 schedule:
