@@ -335,9 +335,12 @@ class GFLHead(AnchorHead):
         :return:
         """
         cls_scores, bbox_preds = preds
+
         result_list = self.get_bboxes(cls_scores, bbox_preds, meta)
 
-        preds = {}
+        # results dict, key: class id
+        results_dict = {}
+
         warp_matrix = meta['warp_matrix'][0] if isinstance(meta['warp_matrix'], list) else meta['warp_matrix']
         img_height = meta['img_info']['height'].cpu().numpy() \
             if isinstance(meta['img_info']['height'], torch.Tensor) else meta['img_info']['height']
@@ -347,25 +350,37 @@ class GFLHead(AnchorHead):
         for result in result_list:
             det_bboxes, det_labels = result
             det_bboxes = det_bboxes.cpu().numpy()
-            det_bboxes[:, :4] = warp_boxes(det_bboxes[:,:4], np.linalg.inv(warp_matrix), img_width, img_height)
+            det_bboxes[:, :4] = warp_boxes(det_bboxes[:, :4], np.linalg.inv(warp_matrix), img_width, img_height)
             classes = det_labels.cpu().numpy()
 
+            # results of each class
             for i in range(self.num_classes):
                 inds = (classes == i)
-                preds[i] = np.concatenate([det_bboxes[inds, :4].astype(np.float32),
-                    det_bboxes[inds, 4:5].astype(np.float32)],
-                                          axis=1).tolist()
 
-        return preds
+                # concatenate bbox and score
+                results_dict[i] = np.concatenate([det_bboxes[inds, :4].astype(np.float32),  # x1, y1, x2, y2
+                                                  det_bboxes[inds, 4:5].astype(np.float32)],  # score
+                                                 axis=1).tolist()
 
-    def show_result(self, img, dets, class_names, score_thres=0.3, show=True, save_path=None):
-        result = overlay_bbox_cv(img, dets, class_names, score_thresh=score_thres)
+        return results_dict
+
+    def show_result(self, img, res_dict, class_names, score_thres=0.3, show=True, save_path=None):
+        """
+        :param img:
+        :param res_dict:
+        :param class_names:
+        :param score_thres:
+        :param show:
+        :param save_path:
+        :return:
+        """
+        img_draw = overlay_bbox_cv(img, res_dict, class_names, score_thresh=score_thres)
 
         if show:
-            cv2.imshow('det', result)
+            cv2.imshow('det', img_draw)
 
         if not save_path is None:
-            cv2.imwrite(save_path, result)
+            cv2.imwrite(save_path, img_draw)
             print('{:s} saved.'.format(save_path))
 
     def get_bboxes(self,
@@ -373,10 +388,18 @@ class GFLHead(AnchorHead):
                    bbox_preds,
                    img_metas,
                    rescale=False):
-
+        """
+        :param cls_scores:
+        :param bbox_preds:
+        :param img_metas:
+        :param rescale:
+        :return:
+        """
         assert len(cls_scores) == len(bbox_preds)
+
         num_levels = len(cls_scores)
         device = cls_scores[0].device
+
         mlvl_anchors = [
             self.anchor_generators[i].grid_anchors(
                 cls_scores[i].size()[-2:],
@@ -392,15 +415,21 @@ class GFLHead(AnchorHead):
             cls_score_list = [
                 cls_scores[i][img_id].detach() for i in range(num_levels)
             ]
+
             bbox_pred_list = [
                 bbox_preds[i][img_id].detach() for i in range(num_levels)
             ]
+
             scale_factor = 1
-            dets = self.get_bboxes_single(cls_score_list, bbox_pred_list,
-                                          mlvl_anchors, input_shape,
-                                          scale_factor, rescale)
+            dets = self.get_bboxes_single(cls_score_list,
+                                          bbox_pred_list,
+                                          mlvl_anchors,
+                                          input_shape,
+                                          scale_factor,
+                                          rescale)
 
             result_list.append(dets)
+
         return result_list
 
     def get_bboxes_single(self,
@@ -410,14 +439,26 @@ class GFLHead(AnchorHead):
                           img_shape,  # input shape!!!!
                           scale_factor,
                           rescale=False):
+        """
+        :param cls_scores:
+        :param bbox_preds:
+        :param mlvl_anchors:
+        :param img_shape:
+        :param scale_factor:
+        :param rescale:
+        :return:
+        """
+
         assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
+
         mlvl_bboxes = []
         mlvl_scores = []
         for stride, cls_score, bbox_pred, anchors in zip(
                 self.anchor_strides, cls_scores, bbox_preds, mlvl_anchors):
+
             assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
-            scores = cls_score.permute(1, 2, 0).reshape(
-                -1, self.cls_out_channels).sigmoid()
+
+            scores = cls_score.permute(1, 2, 0).reshape(-1, self.cls_out_channels).sigmoid()
             bbox_pred = bbox_pred.permute(1, 2, 0)
             bbox_pred = self.distribution_project(bbox_pred) * stride
 
@@ -430,8 +471,7 @@ class GFLHead(AnchorHead):
                 bbox_pred = bbox_pred[topk_inds, :]
                 scores = scores[topk_inds, :]
 
-            bboxes = distance2bbox(self.anchor_center(anchors), bbox_pred,
-                                   max_shape=img_shape)
+            bboxes = distance2bbox(self.anchor_center(anchors), bbox_pred, max_shape=img_shape)
             mlvl_bboxes.append(bboxes)
             mlvl_scores.append(scores)
 
@@ -449,7 +489,9 @@ class GFLHead(AnchorHead):
             mlvl_scores,
             score_thr=0.05,
             nms_cfg=dict(type='nms', iou_threshold=0.6),
-            max_num=100)
+            max_num=100
+        )
+
         return det_bboxes, det_labels
 
     def gfl_target(self,

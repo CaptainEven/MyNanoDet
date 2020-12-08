@@ -22,6 +22,7 @@ class OneStage(nn.Module):
 
         if fpn_cfg is not None:
             self.fpn = build_fpn(fpn_cfg)
+
         if head_cfg is not None:
             self.head = build_head(head_cfg)
 
@@ -30,32 +31,46 @@ class OneStage(nn.Module):
         :param x:
         :return:
         """
+        # ----- backbone
         x = self.backbone(x)
+
+        # ----- neck
         if hasattr(self, 'fpn') and self.fpn is not None:
             x = self.fpn(x)
+
+        # ----- head
         if hasattr(self, 'head'):
             out = []
             for xx in x:
                 out.append(self.head(xx))
             x = tuple(out)
+
         return x
 
     def inference(self, meta):
         """
         :param meta:
-        :return:
+        :return: results dict
         """
         with torch.no_grad():
             torch.cuda.synchronize()
             time1 = time.time()
-            preds = self(meta['img'])
+
+            # ---------- net forward
+            preds = self.forward(meta['img'])
+            # ----------
+
             torch.cuda.synchronize()
             time2 = time.time()
+
             print('forward time: {:.3f}s'.format((time2 - time1)), end=' | ')
-            results = self.head.post_process(preds, meta)
+
+            results_dict = self.head.post_process(preds, meta)
+
             torch.cuda.synchronize()
             print('decode time: {:.3f}s'.format((time.time() - time2)), end=' | ')
-        return results
+
+        return results_dict
 
     def forward_train(self, gt_meta):
         """

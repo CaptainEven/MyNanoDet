@@ -56,17 +56,27 @@ class Predictor(object):
                     raw_img=img,
                     img=img)
 
+        # pre-processing: normalize
         meta = self.pipeline(meta, self.cfg.data.val.input_size)
 
         # numpy array to torch tensor, H×W×C to 1×C×H×W, then put to device
         meta['img'] = torch.from_numpy(meta['img'].transpose(2, 0, 1)).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
-            results = self.model.inference(meta)
+            results_dict = self.model.inference(meta)
 
-        return meta, results
+        return meta, results_dict
 
-    def visualize(self, img_path, dets, meta, class_names, score_thres, wait=0):
+    def visualize(self, img_path, res_dict, meta, class_names, score_thres, wait=0):
+        """
+        :param img_path:
+        :param res_dict: key: cls_id, val: x1, y1, x2, y2, score
+        :param meta:
+        :param class_names:
+        :param score_thres:
+        :param wait:
+        :return:
+        """
         time1 = time.time()
 
         paths = os.path.split(img_path)
@@ -76,7 +86,7 @@ class Predictor(object):
 
         save_img_path = result_dir + '/' + paths[1]
         self.model.head.show_result(meta['raw_img'],
-                                    dets,
+                                    res_dict,
                                     class_names,
                                     score_thres=score_thres,
                                     show=False,
@@ -127,9 +137,9 @@ def run():
 
         files.sort()
         for img_path in files:
-            meta, res = predictor.inference(img_path)
+            meta, res_dict = predictor.inference(img_path)
 
-            predictor.visualize(img_path, res, meta, cfg.class_names, 0.35)
+            predictor.visualize(img_path, res_dict, meta, cfg.class_names, 0.35)
 
             ch = cv2.waitKey(0)
             if ch == 27 or ch == ord('q') or ch == ord('Q'):
@@ -141,10 +151,10 @@ def run():
             ret_val, frame = cap.read()
 
             # ----- inference
-            meta, res = predictor.inference(frame)
+            meta, res_dict = predictor.inference(frame)
             # -----
 
-            predictor.visualize(res, meta, cfg.class_names, 0.35)
+            predictor.visualize(res_dict, meta, cfg.class_names, 0.35)
 
             ch = cv2.waitKey(1)
             if ch == 27 or ch == ord('q') or ch == ord('Q'):
@@ -164,7 +174,7 @@ def parse_args():
                         help='model config file path')
     parser.add_argument('--model',
                         type=str,
-                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch29_iter2000.pth',
+                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch31_iter2500.pth',
                         help='model file path')
     parser.add_argument('--path',
                         default='../data/images',

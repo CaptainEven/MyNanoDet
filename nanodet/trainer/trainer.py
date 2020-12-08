@@ -67,7 +67,7 @@ class Trainer:
         """
         train or validate one epoch
         :param epoch: current epoch number
-        :param data_loader: dataloader of train or test dataset
+        :param data_loader: data-loader of train or test dataset
         :param mode: train or val or test
         :return: outputs and a dict of epoch average losses
         """
@@ -81,7 +81,7 @@ class Trainer:
             model.eval()
             torch.cuda.empty_cache()
 
-        results = {}
+        ret_dict = {}
         epoch_losses = {}
         step_losses = {}
         num_iters = len(data_loader)
@@ -94,8 +94,8 @@ class Trainer:
             output, loss, loss_stats = self.run_step(model, meta, mode)
 
             if mode == 'val':  # TODO: eval
-                dets = model.module.head.post_process(output, meta)
-                results[meta['img_info']['id'].cpu().numpy()[0]] = dets
+                dets_dict = model.module.head.post_process(output, meta)
+                ret_dict[meta['img_info']['id'].cpu().numpy()[0]] = dets_dict
 
             for k in loss_stats:
                 if k not in epoch_losses:
@@ -131,7 +131,7 @@ class Trainer:
 
         epoch_loss_dict = {k: v.avg for k, v in epoch_losses.items()}
 
-        return results, epoch_loss_dict
+        return ret_dict, epoch_loss_dict
 
     def run(self, train_loader, val_loader, evaluator):
         """
@@ -153,19 +153,17 @@ class Trainer:
 
         # ---------- traverse each epoch
         for epoch_i, epoch in enumerate(range(start_epoch, self.cfg.schedule.total_epochs + 1)):
-            results, train_loss_dict = self.run_epoch(epoch, train_loader, mode='train')
-
-            self.lr_scheduler.step()
-
-            save_model(self.rank,
-                       self.model,
-                       os.path.join(self.cfg.save_dir, 'model_last.pth'),
-                       epoch,
-                       self._iter,
-                       self.optimizer)
-
-            for k, v in train_loss_dict.items():
-                self.logger.scalar_summary('Epoch_loss/' + k, 'train', v, epoch)
+            # # ----- run an epoch on train dataset, schedule lr, save model and logging
+            # ret_dict, train_loss_dict = self.run_epoch(epoch, train_loader, mode='train')
+            # self.lr_scheduler.step()
+            # save_model(self.rank,
+            #            self.model,
+            #            os.path.join(self.cfg.save_dir, 'model_last.pth'),
+            #            epoch,
+            #            self._iter,
+            #            self.optimizer)
+            # for k, v in train_loss_dict.items():
+            #     self.logger.scalar_summary('Epoch_loss/' + k, 'train', v, epoch)
 
             # --------evaluate----------
             if evaluator is None:
@@ -178,16 +176,17 @@ class Trainer:
                            epoch,
                            self._iter,
                            self.optimizer)
-            else:
-                if self.cfg.schedule.val_intervals > 0 and epoch % self.cfg.schedule.val_intervals == 0:
-                    with torch.no_grad():
-                        results, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
+            else:  # do evaluation
+                if self.cfg.schedule.val_intervals > 0 \
+                        and epoch % self.cfg.schedule.val_intervals == 0:
+                    with torch.no_grad():  # train an epoch on validation dataset
+                        ret_dict, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
 
                     for k, v in val_loss_dict.items():
                         self.logger.scalar_summary('Epoch_loss/' + k, 'val', v, epoch)
 
-                    # ----- do evaluation
-                    eval_results = evaluator.evaluate(results, self.cfg.save_dir, epoch, self.logger, rank=self.rank)
+                    # ----- do evaluation, ret_dict, key: img_id, val: dets_dict
+                    eval_results = evaluator.evaluate(ret_dict, self.cfg.save_dir, epoch, self.logger, rank=self.rank)
 
                     if self.cfg.evaluator.save_key in eval_results:
                         metric = eval_results[self.cfg.evaluator.save_key]

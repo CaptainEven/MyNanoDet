@@ -21,6 +21,19 @@ def xyxy2xywh(bbox):
     ]
 
 
+class MyDetectionEvaluator(object):
+    def __init__(self, dataset):
+        pass
+
+    def evaluate(self, ret_dict):
+        """
+        :param ret_dict: ret_dict, key: img_id, val: dets_dict,
+         dets_dict, key: cls_id, val: list of x1, y1, x2, y2, score
+        :return:
+        """
+
+
+
 class CocoDetectionEvaluator:
     def __init__(self, dataset):
         """
@@ -54,16 +67,16 @@ class CocoDetectionEvaluator:
                     json_results.append(detection)
         return json_results
 
-    def evaluate(self, results, save_dir, epoch, logger, rank=-1):
+    def evaluate(self, ret_dict, save_dir, epoch, logger, rank=-1):
         """
-        :param results:
+        :param ret_dict:
         :param save_dir:
         :param epoch:
         :param logger:
         :param rank:
         :return:
         """
-        results_json = self.results2json(results)
+        results_json = self.results2json(ret_dict)
         json_path = os.path.join(save_dir, 'results{}.json'.format(rank))
         json.dump(results_json, open(json_path, 'w'))
 
@@ -80,5 +93,5 @@ class CocoDetectionEvaluator:
         for k, v in zip(self.metric_names, aps):
             eval_results[k] = v
             logger.scalar_summary('Val_coco_bbox/' + k, 'val', v, epoch)
-            
+
         return eval_results

@@ -117,8 +117,8 @@ def run(args):
         trainer.resume(cfg)
 
     # ----- Build a evaluator
-    # evaluator = build_evaluator(cfg, val_dataset)
-    evaluator = None
+    evaluator = build_evaluator(cfg, val_dataset)
+    # evaluator = None
 
     logger.log('Starting training...')
     trainer.run(train_data_loader, val_data_loader, evaluator)
@@ -140,7 +140,7 @@ def parse_args():
                         help='random seed')
     parser.add_argument('--is_debug',
                         type=bool,
-                        default=False,  # False: num_workers > 0, True: num_workers = 0
+                        default=True,  # False: num_workers > 0, True: num_workers = 0
                         help='')
 
     args = parser.parse_args()

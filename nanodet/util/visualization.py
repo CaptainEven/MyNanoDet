@@ -9,34 +9,54 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 _SMALL_OBJECT_AREA_THRESH = 1000
 
 
-def overlay_bbox_cv(img, dets, class_names, score_thresh):
+def overlay_bbox_cv(img_draw, res_dict, class_names, score_thresh):
+    """
+    :param img_draw:
+    :param res_dict:
+    :param class_names:
+    :param score_thresh:
+    :return:
+    """
     all_box = []
-    for label in dets:
-        for bbox in dets[label]:
+    for cls_id in res_dict:
+        for bbox in res_dict[cls_id]:
             score = bbox[-1]
-            if score>score_thresh:
-                x0, y0, x1, y1 = [int(i) for i in bbox[:4]]
-                all_box.append([label, x0, y0, x1, y1, score])
+            if score > score_thresh:
+                x1, y1, x2, y2 = [int(i) for i in bbox[:4]]
+                all_box.append([cls_id, x1, y1, x2, y2, score])
 
     all_box.sort(key=lambda v: v[5])
 
     for box in all_box:
-        label, x0, y0, x1, y1, score = box
+        cls_id, x1, y1, x2, y2, score = box
+
         # color = self.cmap(i)[:3]
-        color = (_COLORS[label] * 255).astype(np.uint8).tolist()
-        text = '{}:{:.1f}%'.format(class_names[label], score * 100)
-        txt_color=(0, 0, 0) if np.mean(_COLORS[label]) > 0.5 else (255, 255, 255)
+        color = (_COLORS[cls_id] * 255).astype(np.uint8).tolist()
+        text = '{}:{:.1f}%'.format(class_names[cls_id], score * 100)
+        txt_color = (0, 0, 0) if np.mean(_COLORS[cls_id]) > 0.5 else (255, 255, 255)
         font = cv2.FONT_HERSHEY_SIMPLEX
         txt_size = cv2.getTextSize(text, font, 0.5, 2)[0]
-        cv2.rectangle(img, (x0, y0), (x1, y1), color, 2)
 
-        cv2.rectangle(img,
-                      (x0, y0 - txt_size[1] - 1),
-                      (x0 + txt_size[0] + txt_size[1], y0 - 1), color, -1)
-        cv2.putText(img, text, (x0, y0-1),
-                    font, 0.5, txt_color, thickness=1)
+        # draw bbox
+        cv2.rectangle(img_draw, (x1, y1), (x2, y2), color, 2)
 
-    return img
+        # draw description box
+        cv2.rectangle(img_draw,
+                      (x1, y1 - txt_size[1] - 1),
+                      (x1 + txt_size[0] + txt_size[1], y1 - 1),
+                      color,
+                      -1)
+
+        # draw description
+        cv2.putText(img_draw,
+                    text,
+                    (x1, y1 - 1),
+                    font,
+                    0.5,
+                    txt_color,
+                    thickness=1)
+
+    return img_draw
 
 
 def rand_cmap(nlabels, type='bright', first_color_black=False, last_color_black=False, verbose=False):
@@ -266,7 +286,7 @@ class Visualizer:
         color_mask = np.ones((mask.shape[0], mask.shape[1], 3))
         for i in range(3):
             color_mask[:, :, i] = color[i]
-        self.viz.ax.imshow(np.dstack((color_mask, mask*alpha)))
+        self.viz.ax.imshow(np.dstack((color_mask, mask * alpha)))
         for ploy in polys:
             self.draw_polycon(ploy.reshape(-1, 2), color, edge_color=None, alpha=alpha)
 

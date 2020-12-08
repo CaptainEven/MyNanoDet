@@ -76,10 +76,10 @@ device:
 
 schedule:
   resume:
-    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch29_iter2000.pth
+    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch40_iter1000.pth
   optimizer:
     name: SGD
-    lr: 0.00750
+    lr: 0.00550
     momentum: 0.9
     weight_decay: 0.0001
   warmup:
@@ -95,7 +95,7 @@ schedule:
   save_interval: 500  # iteration interval of saving checkpoint
 
 evaluator:
-  name: CocoDetectionEvaluator
+  name: MyDetectionEvaluator  # CocoDetectionEvaluator
   save_key: mAP
 
 log:
