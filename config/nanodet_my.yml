@@ -44,8 +44,8 @@ model:
 data:
   train:
     name: mcmot_det
-    img_path: /mnt/diskb/even/dataset/MCMOT_DET/JPEGImages           # jpg root
-    ann_path: /mnt/diskb/even/dataset/MCMOT_DET/Annotations          # xml root
+    img_path: /mnt/diskb/even/dataset/MCMOT_DET/JPEGImages   # jpg root
+    ann_path: /mnt/diskb/even/dataset/MCMOT_DET/Annotations  # xml root
     input_size: [768, 448]  # [w, h]
     keep_ratio: True
     pipeline:
@@ -76,7 +76,7 @@ device:
 
 schedule:
   resume:
-    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch49_iter500.pth
+    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch53_iter4500.pth
   optimizer:
     name: SGD
     lr: 0.00550

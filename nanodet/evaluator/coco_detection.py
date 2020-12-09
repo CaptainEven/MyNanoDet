@@ -68,29 +68,39 @@ class MyDetectionEvaluator(object):
 
         # ---------- output results.txt
         for i in range(N):  # process each image
-            dets = []
+            dets = []  # to store dets of the image
+            dets_dict = ret_dict[i]
             for cls_id in range(self.num_classes):  # process each object class
-                cls_dets = ret_dict[cls_id]
-
+                cls_dets = dets_dict[cls_id]
                 for det in cls_dets:  # process each detected object
                     x1, y1, x2, y2, score = det
                     det = x1, y1, x2, y2, score, cls_id
                     dets.append(det)
 
-            # ----- format output
+            # ----- get image info dict
             img_info = self.dataset.img_info_list[i]
-            w, h = img_info['width'], img_info['height']  # image width and height
-            img_name = img_info['file_name']
-            dets_list = self.format_det_outputs(dets, w, h)
+
+            # ----- whether detection results exist or not
+            if dets is None:
+                print('\n[Warning]: non objects detected in {}, frame id {:d}\n' \
+                      .format(os.path.split(path), fr_id))
+                dets_list = []
+
+            else:
+                # ----- format output
+                w, h = img_info['width'], img_info['height']  # image width and height
+                dets_list = self.format_det_outputs(dets, w, h)
 
             # ----- write output
+            img_name = img_info['file_name']
             txt_out_path = self.txt_out_dir + '/' + img_name.replace('.jpg', 'txt')
             with open(txt_out_path, 'w', encoding='utf-8') as f:
                 f.write('class prob x y w h total=' + str(len(dets_list)) + '\n')  # write head
                 for det in dets_list:
                     f.write('%d %f %f %f %f %f\n' % (det[0], det[1], det[2], det[3], det[4], det[5]))
-            print('{} written'.format(out_f_path))
-        print('Total {:d} images tested.')
+            print('{} written'.format(txt_out_path))
+
+        print('Total {:d} images tested.'.format(N))
 
         # ----------
         test_tmp()

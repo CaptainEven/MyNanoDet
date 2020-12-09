@@ -98,33 +98,50 @@ class MyDataset(BaseDataset):
                 parse_results = parse_xml(xml_path)
                 if parse_results is None:
                     print('[Warning]: empty label {:s}.'.format(xml_path))
-                    continue
-
-                label_obj_strs, (w, h) = parse_results
+                    # continue
+                else:
+                    label_obj_strs, (w, h) = parse_results
+                    label = self.format_label_str(label_obj_strs)
 
                 # read image for image width and height info
                 if not (isinstance(w, int) and isinstance(h, int)):
                     img = cv2.imread(img_path)
                     h, w = img.shape[:2]
-                label = self.format_label_str(label_obj_strs)
 
-                if label.size != 0:
-                    # --- filling image info list
-                    img_info = dict()
-                    img_info['height'] = w  # image width
-                    img_info['width'] = h  # image height
-                    img_info['file_name'] = os.path.split(img_path)[-1]  # image file name
-                    img_info['id'] = self.N  # image id
-                    self.img_info_list.append(img_info)
+                # if label.size != 0:
+                #     # --- filling image info list
+                #     img_info = dict()
+                #     img_info['height'] = w  # image width
+                #     img_info['width'] = h  # image height
+                #     img_info['file_name'] = os.path.split(img_path)[-1]  # image file name
+                #     img_info['id'] = self.N  # image id
+                #     self.img_info_list.append(img_info)
+                #
+                #     # --- filling label
+                #     self.labels[self.N] = label  # only count non-empty label(and its corresponding image)
+                #
+                #     # --- filling image path
+                #     self.img_list[self.N] = img_path
+                #
+                #     # update non-empty label counting
+                #     self.N += 1
 
-                    # --- filling label
-                    self.labels[self.N] = label  # only count non-empty label(and its corresponding image)
+                # --- filling image info list
+                img_info = dict()
+                img_info['height'] = w  # image width
+                img_info['width'] = h  # image height
+                img_info['file_name'] = os.path.split(img_path)[-1]  # image file name
+                img_info['id'] = self.N  # image id
+                self.img_info_list.append(img_info)
 
-                    # --- filling image path
-                    self.img_list[self.N] = img_path
+                # --- filling label
+                self.labels[self.N] = label  # only count non-empty label(and its corresponding image)
 
-                    # update non-empty label counting
-                    self.N += 1
+                # --- filling image path
+                self.img_list[self.N] = img_path
+
+                # update non-empty label counting
+                self.N += 1
             # ----------
 
             print('Total {:d} non-empty label samples.'.format(self.N))
