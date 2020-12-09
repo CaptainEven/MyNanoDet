@@ -101,14 +101,19 @@ class MyDataset(BaseDataset):
                     continue
 
                 label_obj_strs, (w, h) = parse_results
-                label = self.label_str_format(label_obj_strs)
+
+                # read image for image width and height info
+                if not (isinstance(w, int) and isinstance(h, int)):
+                    img = cv2.imread(img_path)
+                    h, w = img.shape[:2]
+                label = self.format_label_str(label_obj_strs)
 
                 if label.size != 0:
                     # --- filling image info list
                     img_info = dict()
-                    img_info['height'] = w   # image width
-                    img_info['width'] = h    # image height
-                    img_info['file_name'] = os.path.split(img_path)[-1]
+                    img_info['height'] = w  # image width
+                    img_info['width'] = h  # image height
+                    img_info['file_name'] = os.path.split(img_path)[-1]  # image file name
                     img_info['id'] = self.N  # image id
                     self.img_info_list.append(img_info)
 
@@ -130,7 +135,7 @@ class MyDataset(BaseDataset):
         else:
             return len(self.img_list)
 
-    def label_str_format(self, label_objs_str):
+    def format_label_str(self, label_objs_str):
         """
         :return:
         """
@@ -190,7 +195,7 @@ class MyDataset(BaseDataset):
                 print('[Warning]: empty label {:s}.'.format(xml_path))
 
             label_obj_strs, (w, h) = parse_results
-            label = self.label_str_format(label_obj_strs)
+            label = self.format_label_str(label_obj_strs)
 
             bboxes = label[:, 1:]
             class_labels = label[:, 0]

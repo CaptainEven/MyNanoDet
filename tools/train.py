@@ -109,6 +109,7 @@ def run(args):
                                                       pin_memory=True,
                                                       collate_fn=collate_function, drop_last=True)
 
+    # -----
     trainer = build_trainer(local_rank, cfg, model, logger)
 
     if 'load_model' in cfg.schedule:
@@ -140,7 +141,7 @@ def parse_args():
                         help='random seed')
     parser.add_argument('--is_debug',
                         type=bool,
-                        default=True,  # False: num_workers > 0, True: num_workers = 0
+                        default=False,  # False: num_workers > 0, True: num_workers = 0
                         help='')
 
     args = parser.parse_args()

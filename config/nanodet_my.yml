@@ -72,11 +72,11 @@ data:
 device:
   gpu_ids: [2]
   workers_per_gpu: 4
-  batchsize_per_gpu: 40
+  batchsize_per_gpu: 48
 
 schedule:
   resume:
-    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch40_iter1000.pth
+    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch49_iter500.pth
   optimizer:
     name: SGD
     lr: 0.00550
@@ -91,12 +91,13 @@ schedule:
     name: MultiStepLR
     milestones: [40, 55, 60, 65, 75]
     gamma: 0.1
-  val_intervals: 10
+  val_intervals: 1    # validate interval
   save_interval: 500  # iteration interval of saving checkpoint
 
 evaluator:
   name: MyDetectionEvaluator  # CocoDetectionEvaluator
   save_key: mAP
+  txt_out_dir: /users/duanyou/c5/results_new/results_all/tmp
 
 log:
   interval: 10

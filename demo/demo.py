@@ -174,7 +174,7 @@ def parse_args():
                         help='model config file path')
     parser.add_argument('--model',
                         type=str,
-                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch31_iter2500.pth',
+                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch46_iter3500.pth',
                         help='model file path')
     parser.add_argument('--path',
                         default='../data/images',

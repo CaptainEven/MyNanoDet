@@ -153,17 +153,17 @@ class Trainer:
 
         # ---------- traverse each epoch
         for epoch_i, epoch in enumerate(range(start_epoch, self.cfg.schedule.total_epochs + 1)):
-            # # ----- run an epoch on train dataset, schedule lr, save model and logging
-            # ret_dict, train_loss_dict = self.run_epoch(epoch, train_loader, mode='train')
-            # self.lr_scheduler.step()
-            # save_model(self.rank,
-            #            self.model,
-            #            os.path.join(self.cfg.save_dir, 'model_last.pth'),
-            #            epoch,
-            #            self._iter,
-            #            self.optimizer)
-            # for k, v in train_loss_dict.items():
-            #     self.logger.scalar_summary('Epoch_loss/' + k, 'train', v, epoch)
+            # ----- run an epoch on train dataset, schedule lr, save model and logging
+            ret_dict, train_loss_dict = self.run_epoch(epoch, train_loader, mode='train')
+            self.lr_scheduler.step()
+            save_model(self.rank,
+                       self.model,
+                       os.path.join(self.cfg.save_dir, 'model_last.pth'),
+                       epoch,
+                       self._iter,
+                       self.optimizer)
+            for k, v in train_loss_dict.items():
+                self.logger.scalar_summary('Epoch_loss/' + k, 'train', v, epoch)
 
             # --------evaluate----------
             if evaluator is None:
@@ -186,7 +186,10 @@ class Trainer:
                         self.logger.scalar_summary('Epoch_loss/' + k, 'val', v, epoch)
 
                     # ----- do evaluation, ret_dict, key: img_id, val: dets_dict
-                    eval_results = evaluator.evaluate(ret_dict, self.cfg.save_dir, epoch, self.logger, rank=self.rank)
+                    if self.cfg.evaluator.name == 'CocoDetectionEvaluator':
+                        eval_results = evaluator.evaluate(ret_dict, self.cfg.save_dir, epoch, self.logger, rank=self.rank)
+                    elif self.cfg.evaluator.name == 'MyDetectionEvaluator':
+                        evaluator.evaluate(ret_dict)
 
                     if self.cfg.evaluator.save_key in eval_results:
                         metric = eval_results[self.cfg.evaluator.save_key]

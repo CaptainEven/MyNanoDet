@@ -1,3 +1,5 @@
+# encoding=utf-8
+
 import torch
 from .trainer import Trainer
 from .dist_trainer import DistTrainer
@@ -11,4 +13,3 @@ def build_trainer(rank, cfg, model, logger):
         trainer = Trainer(rank, cfg, model, logger)
         trainer.set_device(cfg.device.batchsize_per_gpu, cfg.device.gpu_ids, device=torch.device('cuda'))
     return trainer
-

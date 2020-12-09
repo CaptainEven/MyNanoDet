@@ -2,6 +2,7 @@
 
 import pycocotools.coco as coco
 from pycocotools.cocoeval import COCOeval
+from mAPEvaluate.TestmApDetect import test_tmp
 import json
 import os
 import copy
@@ -22,8 +23,39 @@ def xyxy2xywh(bbox):
 
 
 class MyDetectionEvaluator(object):
-    def __init__(self, dataset):
-        pass
+    def __init__(self, dataset, txt_out_dir, num_classes=5):
+        """
+        :param dataset:
+        :param txt_out_dir:
+        :param num_classes:
+        """
+        self.dataset = dataset
+        self.txt_out_dir = txt_out_dir
+        self.num_classes = num_classes
+        if not os.path.isdir(self.txt_out_dir):
+            print('[Err]: invalid txt output directory.')
+            return
+
+    def format_det_outputs(self, dets, w, h):
+        """
+        :param dets: detection result input: x1, y1, x2, y2, score, cls_id
+        :param w: image's original width
+        :param h: image's original height
+        :return: list of items: cls_id, conf_score, center_x, center_y,  bbox_w, bbox_h, [0, 1]
+        """
+        if dets is None:
+            return None
+
+        out_list = []
+        for det in dets:
+            x1, y1, x2, y2, score, cls_id = det
+            center_x = (x1 + x2) * 0.5 / float(w)
+            center_y = (y1 + y2) * 0.5 / float(h)
+            bbox_w = (x2 - x1) / float(w)
+            bbox_h = (y2 - y1) / float(h)
+            out_list.append([int(cls_id), score, center_x, center_y, bbox_w, bbox_h])
+
+        return out_list
 
     def evaluate(self, ret_dict):
         """
@@ -31,8 +63,37 @@ class MyDetectionEvaluator(object):
          dets_dict, key: cls_id, val: list of x1, y1, x2, y2, score
         :return:
         """
+        N = len(ret_dict)
+        print('Total {:d} images for evaluation.'.format(N))
 
+        # ---------- output results.txt
+        for i in range(N):  # process each image
+            dets = []
+            for cls_id in range(self.num_classes):  # process each object class
+                cls_dets = ret_dict[cls_id]
 
+                for det in cls_dets:  # process each detected object
+                    x1, y1, x2, y2, score = det
+                    det = x1, y1, x2, y2, score, cls_id
+                    dets.append(det)
+
+            # ----- format output
+            img_info = self.dataset.img_info_list[i]
+            w, h = img_info['width'], img_info['height']  # image width and height
+            img_name = img_info['file_name']
+            dets_list = self.format_det_outputs(dets, w, h)
+
+            # ----- write output
+            txt_out_path = self.txt_out_dir + '/' + img_name.replace('.jpg', 'txt')
+            with open(txt_out_path, 'w', encoding='utf-8') as f:
+                f.write('class prob x y w h total=' + str(len(dets_list)) + '\n')  # write head
+                for det in dets_list:
+                    f.write('%d %f %f %f %f %f\n' % (det[0], det[1], det[2], det[3], det[4], det[5]))
+            print('{} written'.format(out_f_path))
+        print('Total {:d} images tested.')
+
+        # ----------
+        test_tmp()
 
 class CocoDetectionEvaluator:
     def __init__(self, dataset):
