@@ -76,7 +76,7 @@ device:
 
 schedule:
   resume:
-    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch53_iter4500.pth
+    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch56_iter4500.pth
   optimizer:
     name: SGD
     lr: 0.00550

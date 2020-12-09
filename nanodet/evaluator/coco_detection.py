@@ -3,6 +3,7 @@
 import pycocotools.coco as coco
 from pycocotools.cocoeval import COCOeval
 from mAPEvaluate.TestmApDetect import test_tmp
+import shutil
 import json
 import os
 import copy
@@ -34,7 +35,10 @@ class MyDetectionEvaluator(object):
         self.num_classes = num_classes
         if not os.path.isdir(self.txt_out_dir):
             print('[Err]: invalid txt output directory.')
-            return
+            os.makedirs(self.txt_out_dir)
+        else:
+            shutil.rmtree(self.txt_out_dir)
+            os.makedirs(self.txt_out_dir)
 
     def format_det_outputs(self, dets, w, h):
         """
@@ -69,7 +73,7 @@ class MyDetectionEvaluator(object):
         # ---------- output results.txt
         for i in range(N):  # process each image
             dets = []  # to store dets of the image
-            dets_dict = ret_dict[i]
+            dets_dict = ret_dict[i]  # detections of this image
             for cls_id in range(self.num_classes):  # process each object class
                 cls_dets = dets_dict[cls_id]
                 for det in cls_dets:  # process each detected object
@@ -93,7 +97,9 @@ class MyDetectionEvaluator(object):
 
             # ----- write output
             img_name = img_info['file_name']
-            txt_out_path = self.txt_out_dir + '/' + img_name.replace('.jpg', 'txt')
+            if img_name == 'HZTCBB0004_2018-06-20_10-31-46-045_2-3-1529461914.jpg':
+                print('Pause here.')
+            txt_out_path = self.txt_out_dir + '/' + img_name.replace('.jpg', '.txt')
             with open(txt_out_path, 'w', encoding='utf-8') as f:
                 f.write('class prob x y w h total=' + str(len(dets_list)) + '\n')  # write head
                 for det in dets_list:

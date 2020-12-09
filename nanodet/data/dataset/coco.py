@@ -52,6 +52,7 @@ class MyDataset(BaseDataset):
         img_list = []
         txt_list = []
 
+        # ----- recursive searching
         find_files_with_suffix(self.img_path, suffix='.jpg', f_list=img_list)
         find_files_with_suffix(self.ann_path, suffix='.xml', f_list=txt_list)
 
@@ -95,7 +96,7 @@ class MyDataset(BaseDataset):
             p_bar = tqdm(zip(self.img_list, self.xml_list), desc='Caching labels')
             for img_path, xml_path in p_bar:
                 # parse xml into coco label format
-                parse_results = parse_xml(xml_path)
+                parse_results = parse_xml(xml_path)  # parsing xml label file
                 if parse_results is None:
                     print('[Warning]: empty label {:s}.'.format(xml_path))
                     # continue
@@ -111,8 +112,8 @@ class MyDataset(BaseDataset):
                 # if label.size != 0:
                 #     # --- filling image info list
                 #     img_info = dict()
-                #     img_info['height'] = w  # image width
-                #     img_info['width'] = h  # image height
+                #     img_info['width'] = w  # image width
+                #     img_info['height'] = h  # image height
                 #     img_info['file_name'] = os.path.split(img_path)[-1]  # image file name
                 #     img_info['id'] = self.N  # image id
                 #     self.img_info_list.append(img_info)
@@ -128,8 +129,8 @@ class MyDataset(BaseDataset):
 
                 # --- filling image info list
                 img_info = dict()
-                img_info['height'] = w  # image width
-                img_info['width'] = h  # image height
+                img_info['width'] = w  # image width
+                img_info['height'] = h  # image height
                 img_info['file_name'] = os.path.split(img_path)[-1]  # image file name
                 img_info['id'] = self.N  # image id
                 self.img_info_list.append(img_info)

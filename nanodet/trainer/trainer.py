@@ -153,7 +153,7 @@ class Trainer:
 
         # ---------- traverse each epoch
         for epoch_i, epoch in enumerate(range(start_epoch, self.cfg.schedule.total_epochs + 1)):
-            # ----- validate before training
+            # ----- validate before training actually starts
             ret_dict, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
             if self.cfg.evaluator.name == 'MyDetectionEvaluator':
                 evaluator.evaluate(ret_dict)

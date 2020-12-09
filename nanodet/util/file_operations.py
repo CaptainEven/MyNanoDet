@@ -1,7 +1,9 @@
 # encoding=utf-8
 
 import os
+import shutil
 import xml.etree.ElementTree as ET
+
 
 target_types = ['car', 'car_front', 'car_rear',
                 'bicycle', 'person', 'cyclist',
@@ -163,3 +165,49 @@ def parse_xml(xml_path):
         label_obj_strs.append(obj_str)
 
     return label_obj_strs, (w, h)
+
+
+def cp_to(src, dst):
+    """
+    :param src:
+    :param dst:
+    :return:
+    """
+
+    cnt = 0
+    if os.path.isfile(src):
+        if src.endswith('.txt'):
+            if os.path.isdir(dst):
+                with open(src, 'r', encoding='utf-8') as f:
+                    lines = [x.strip() for x in f.readlines()]
+                    for line in lines:
+                        if not os.path.isfile(line):
+                            print('[Warning]: {:s} not exists.'.format(line))
+                            continue
+                        else:
+                            cnt += 1
+
+                            src_dir, f_name = os.path.split(line)
+                            dir_name = src_dir.split('/')[-2]
+                            dst_dir = dst + '/' + dir_name
+                            if not os.path.isdir(dst_dir):
+                                os.makedirs(dst_dir)
+
+                            dst_f_path = dst_dir + '/' + f_name
+                            if not os.path.isfile(dst_f_path):
+                                shutil.copy(line, dst_dir)
+                                print('{:s} from {:s} cp to {:s}'.format(f_name, src_dir, dst_dir))
+                            else:
+                                print('{:s} already exists.'.format(dst_f_path))
+            else:
+                pass
+    elif os.path.isdir(src):
+        pass
+    else:
+        pass
+
+    print('Total {:d} files.'.format(cnt))
+
+
+if __name__ == '__main__':
+    cp_to(src='/users/duanyou/c5/all_pretrain/test1.txt', dst='/mnt/diskb/even/dataset/MCMOT_DET/test')
