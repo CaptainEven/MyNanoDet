@@ -182,8 +182,6 @@ class Trainer:
                            self._iter,
                            self.optimizer)
             else:  # do evaluation
-                # if self.cfg.schedule.val_intervals > 0 \
-                #         and epoch % self.cfg.schedule.val_intervals == 0:
                 if epoch % self.cfg.schedule.val_intervals == 0:
                     with torch.no_grad():  # train an epoch on validation dataset
                         ret_dict, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
