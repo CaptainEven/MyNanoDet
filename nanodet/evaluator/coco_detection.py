@@ -97,8 +97,6 @@ class MyDetectionEvaluator(object):
 
             # ----- write output
             img_name = img_info['file_name']
-            if img_name == 'HZTCBB0004_2018-06-20_10-31-46-045_2-3-1529461914.jpg':
-                print('Pause here.')
             txt_out_path = self.txt_out_dir + '/' + img_name.replace('.jpg', '.txt')
             with open(txt_out_path, 'w', encoding='utf-8') as f:
                 f.write('class prob x y w h total=' + str(len(dets_list)) + '\n')  # write head
