@@ -2,7 +2,7 @@
 
 import pycocotools.coco as coco
 from pycocotools.cocoeval import COCOeval
-from mAPEvaluate.TestmApDetect import test_tmp
+from mAPEvaluate.TestmApDetect import test_tmp_mAP
 import shutil
 import json
 import os
@@ -106,8 +106,9 @@ class MyDetectionEvaluator(object):
 
         print('Total {:d} images tested.'.format(N))
 
-        # ----------
-        test_tmp()
+        # ---------- run mAP evaluation
+        test_tmp_mAP()
+
 
 class CocoDetectionEvaluator:
     def __init__(self, dataset):
