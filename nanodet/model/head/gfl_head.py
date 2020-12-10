@@ -104,6 +104,18 @@ class GFLHead(AnchorHead):
                  norm_cfg=dict(type='GN', num_groups=32, requires_grad=True),
                  reg_max=16,
                  **kwargs):
+        """
+        :param num_classes:
+        :param loss:
+        :param input_channel:
+        :param stacked_convs:
+        :param octave_base_scale:
+        :param scales_per_octave:
+        :param conv_cfg:
+        :param norm_cfg:
+        :param reg_max:
+        :param kwargs:
+        """
         self.stacked_convs = stacked_convs
         self.octave_base_scale = octave_base_scale
         self.scales_per_octave = scales_per_octave
@@ -484,11 +496,12 @@ class GFLHead(AnchorHead):
         padding = mlvl_scores.new_zeros(mlvl_scores.shape[0], 1)
         mlvl_scores = torch.cat([mlvl_scores, padding], dim=1)
 
+        # ---------- Do NMS, TODO: tune hyper-params
         det_bboxes, det_labels = multiclass_nms(
             mlvl_bboxes,
             mlvl_scores,
-            score_thr=0.05,
-            nms_cfg=dict(type='nms', iou_threshold=0.6),
+            score_thr=0.15,  # 0.05
+            nms_cfg=dict(type='nms', iou_threshold=0.45),  # 0.6
             max_num=100
         )
 

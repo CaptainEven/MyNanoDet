@@ -153,10 +153,10 @@ class Trainer:
 
         # ---------- traverse each epoch
         for epoch_i, epoch in enumerate(range(start_epoch, self.cfg.schedule.total_epochs + 1)):
-            # ----- validate before training actually starts
-            ret_dict, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
-            if self.cfg.evaluator.name == 'MyDetectionEvaluator':
-                evaluator.evaluate(ret_dict)
+            # # ----- validate before training actually starts
+            # ret_dict, val_loss_dict = self.run_epoch(self.epoch, val_loader, mode='val')
+            # if self.cfg.evaluator.name == 'MyDetectionEvaluator':
+            #     evaluator.evaluate(ret_dict)
 
             # ----- run an epoch on train dataset, schedule lr, save model and logging
             ret_dict, train_loss_dict = self.run_epoch(epoch, train_loader, mode='train')
@@ -193,8 +193,10 @@ class Trainer:
                     if self.cfg.evaluator.name == 'CocoDetectionEvaluator':
                         eval_results = evaluator.evaluate(ret_dict, self.cfg.save_dir, epoch, self.logger, rank=self.rank)
                     elif self.cfg.evaluator.name == 'MyDetectionEvaluator':
-                        evaluator.evaluate(ret_dict)
+                        eval_results = evaluator.evaluate(ret_dict)
 
+                    if eval_results is None:
+                        continue
                     if self.cfg.evaluator.save_key in eval_results:
                         metric = eval_results[self.cfg.evaluator.save_key]
                         if metric > save_flag:
@@ -230,6 +232,7 @@ class Trainer:
             warmup_lr = self.cfg.schedule.optimizer.lr * k
         else:
             raise Exception('Unsupported warm up type!')
+
         return warmup_lr
 
     def warm_up(self, data_loader):

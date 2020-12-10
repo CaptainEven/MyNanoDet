@@ -108,6 +108,7 @@ class MyDetectionEvaluator(object):
 
         # ---------- run mAP evaluation
         test_tmp_mAP()
+        return None
 
 
 class CocoDetectionEvaluator:

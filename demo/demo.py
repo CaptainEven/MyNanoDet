@@ -32,7 +32,7 @@ class Predictor(object):
         load_model_weight(model, ckpt, logger)
         print('INFO: {:s} loaded.'.format(model_path))
         self.model = model.to(device).eval()
-        
+
         self.pipeline = Pipeline(cfg.data.val.pipeline, cfg.data.val.keep_ratio)
 
     def inference(self, img):
@@ -174,7 +174,7 @@ def parse_args():
                         help='model config file path')
     parser.add_argument('--model',
                         type=str,
-                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch55_iter4500.pth',
+                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch57_iter0.pth',
                         help='model file path')
     parser.add_argument('--path',
                         default='../data/images',

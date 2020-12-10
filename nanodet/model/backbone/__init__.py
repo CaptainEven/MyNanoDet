@@ -18,6 +18,8 @@ def build_backbone(cfg):
     elif name == 'GhostNet':
         return GhostNet(**backbone_cfg)
     elif name == 'MobileNetV2':
+        backbone_cfg.pop('model_size')
+        backbone_cfg.pop('activation')
         return MobileNetV2(**backbone_cfg)
     else:
         raise NotImplementedError

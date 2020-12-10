@@ -47,8 +47,15 @@ class InvertedResidual(nn.Module):
 
 
 class MobileNetV2(nn.Module):
-    def __init__(self, width_mult=1., out_stages=(1, 2, 4, 6), last_channel=1280, act='ReLU'):
+    def __init__(self, width_mult=1.0, out_stages=(1, 2, 4, 6), last_channel=1280, act='ReLU'):
+        """
+        :param width_mult:
+        :param out_stages:
+        :param last_channel:
+        :param act:
+        """
         super(MobileNetV2, self).__init__()
+
         self.width_mult = width_mult
         self.out_stages = out_stages
         input_channel = 32

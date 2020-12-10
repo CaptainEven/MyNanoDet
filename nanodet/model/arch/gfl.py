@@ -6,6 +6,11 @@ class GFL(OneStage):
                  backbone_cfg,
                  fpn_cfg,
                  head_cfg, ):
+        """
+        :param backbone_cfg:
+        :param fpn_cfg:
+        :param head_cfg:
+        """
         super(GFL, self).__init__(backbone_cfg,
                                   fpn_cfg,
                                   head_cfg)
