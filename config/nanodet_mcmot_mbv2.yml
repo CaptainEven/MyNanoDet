@@ -1,17 +1,15 @@
 # Config File example
-save_dir: /mnt/diskb/even/workspace/nanodet_mcmot
+save_dir: /mnt/diskb/even/workspace/nanodet_mcmot_mbv2
 
 model:
   arch:
     name: GFL
     backbone:
-      name: ShuffleNetV2  # ResNet, ShuffleNetV2, MobileNetV2, GhostNet...
-      model_size: 1.0x
-      out_stages: [2, 3, 4]  # [2, 3, 4]
-      activation: LeakyReLU
+      name: MobileNetV2  # ResNet, ShuffleNetV2, MobileNetV2, GhostNet...
+      out_stages: [2, 4, 6]  # [2, 3, 4]
     fpn:
       name: PAN
-      in_channels: [116, 232, 464]  # [116, 232, 464]
+      in_channels: [32, 96, 1280]  # [116, 232, 464]
       out_channels: 96
       start_level: 0
       num_outs: 3
@@ -72,14 +70,14 @@ data:
 device:
   gpu_ids: [2]
   workers_per_gpu: 8
-  batchsize_per_gpu: 56
+  batchsize_per_gpu: 24
 
 schedule:
-  resume:
-    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch59_iter0.pth
+#  resume:
+#    load_model: /mnt/diskb/even/workspace/nanodet_mcmot/epoch59_iter0.pth
   optimizer:
     name: SGD
-    lr: 0.00550
+    lr: 0.0100
     momentum: 0.9
     weight_decay: 0.0001
   warmup:

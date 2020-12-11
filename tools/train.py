@@ -129,7 +129,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config',
                         type=str,
-                        default='../config/nanodet_my.yml',
+                        default='../config/nanodet_mcmot_mbv2.yml',
                         help='train config file path')
     parser.add_argument('--local_rank',
                         default=-1,

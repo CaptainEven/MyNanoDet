@@ -500,7 +500,7 @@ class GFLHead(AnchorHead):
         det_bboxes, det_labels = multiclass_nms(
             mlvl_bboxes,
             mlvl_scores,
-            score_thr=0.15,  # 0.05
+            score_thr=0.25,  # 0.05
             nms_cfg=dict(type='nms', iou_threshold=0.45),  # 0.6
             max_num=100
         )
