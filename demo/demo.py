@@ -9,6 +9,7 @@ import argparse
 from nanodet.util import cfg, load_config, Logger
 from nanodet.model.arch import build_model
 from nanodet.util import load_model_weight
+from nanodet.util import torch_utils
 from nanodet.data.transform import Pipeline
 
 image_ext = ['.jpg', '.jpeg', '.webp', '.bmp', '.png']
@@ -125,8 +126,14 @@ def run():
     # ----- load and parse config file
     load_config(cfg, args.config)
 
+    # ----- set logger
     logger = Logger(-1, use_tensorboard=False)
-    predictor = Predictor(cfg, args.model, logger, device='cuda:0')
+
+    # ----- set device
+    device = torch_utils.select_device(args.device, apex=False, batch_size=None)
+
+    # ----- set predictor
+    predictor = Predictor(cfg, args.model, logger, device=device)  # 'cuda:0'
     logger.log('Press "Esc", "q" or "Q" to exit.')
 
     if args.demo == 'image':
@@ -170,11 +177,11 @@ def parse_args():
                         help='demo type, eg. image, video and webcam')
     parser.add_argument('--config',
                         type=str,
-                        default='../config/nanodet_my.yml',
+                        default='../config/nanodet_mcmot_mbv2.yml',
                         help='model config file path')
     parser.add_argument('--model',
                         type=str,
-                        default='/mnt/diskb/even/workspace/nanodet_mcmot/epoch57_iter0.pth',
+                        default='/mnt/diskb/even/workspace/nanodet_mcmot_mbv2/epoch2_iter1000.pth',
                         help='model file path')
     parser.add_argument('--path',
                         default='../data/images',
@@ -183,6 +190,10 @@ def parse_args():
                         type=int,
                         default=0,
                         help='webcam demo camera id')
+    parser.add_argument('--device',
+                        type=str,
+                        default='6',
+                        help='device id (i.e. 0 or 0,1 or cpu)')
 
     args = parser.parse_args()
     return args
