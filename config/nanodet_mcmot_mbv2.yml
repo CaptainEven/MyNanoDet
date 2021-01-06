@@ -74,10 +74,10 @@ device:
 
 schedule:
   resume:
-    load_model: /mnt/diskb/even/workspace/nanodet_mcmot_mbv2/epoch2_iter1000.pth
+    load_model: /mnt/diskb/even/workspace/nanodet_mcmot_mbv2/epoch22_iter4500.pth
   optimizer:
     name: SGD
-    lr: 0.0100
+    lr: 0.007
     momentum: 0.9
     weight_decay: 0.0001
   warmup:
